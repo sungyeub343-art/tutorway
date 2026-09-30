@@ -117,6 +117,7 @@ h1, h2 { margin: 0; font-family: "Gowun Batang", serif; font-weight: 700; line-h
 .agreement { display: flex; align-items: center; gap: 9px; color: var(--muted); font-size: 11px; cursor: pointer; }
 .agreement input { width: 16px; height: 16px; accent-color: var(--coral); }
 .submit-button { width: 100%; margin-top: 3px; }
+.submit-button:disabled { opacity: .6; cursor: wait; transform: none; }
 .form-status { min-height: 22px; margin: -8px 0 0; color: #a13d28; font-size: 12px; }
 
 .site-footer { display: grid; grid-template-columns: 1fr 1fr auto; align-items: center; gap: 45px; padding: 49px clamp(23px, 5vw, 78px); color: rgba(255,255,255,.6); background: #09241e; font-size: 11px; }
