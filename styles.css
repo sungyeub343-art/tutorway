@@ -71,6 +71,7 @@ h1, h2 { margin: 0; font-family: "Gowun Batang", serif; font-weight: 700; line-h
 .grade-tabs { display: flex; margin-top: 44px; border-bottom: 1px solid rgba(23,35,31,.25); }
 .grade-tabs button { flex: 1; border: 0; border-bottom: 3px solid transparent; padding: 13px 5px; color: #757e79; background: transparent; font-weight: 700; cursor: pointer; }
 .grade-tabs button[aria-selected="true"] { border-color: var(--coral); color: var(--ink); }
+.grade-transition { margin: 24px 0 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
 .grade-content { min-height: 274px; padding-top: 32px; outline: 0; }
 .grade-en { margin: 0 0 7px; color: #b94b34; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
 .grade-content h3 { margin: 0; font-size: 22px; }
