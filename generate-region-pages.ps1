@@ -150,6 +150,7 @@ function Get-Page($page) {
   <meta property="og:description" content="$($page.Description)">
   <meta property="og:url" content="$($page.Url)">
   <link rel="canonical" href="$($page.Url)">
+  <link rel="icon" href="../favicon.ico" sizes="any">
   <link rel="icon" href="../favicon.svg" type="image/svg+xml">
   <title>$($page.Title)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
