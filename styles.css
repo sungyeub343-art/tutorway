@@ -53,7 +53,7 @@ h1, h2 { margin: 0; font-family: "Gowun Batang", serif; font-weight: 700; line-h
 
 .section { padding: 120px clamp(23px, 8vw, 135px); }
 .intro { display: grid; grid-template-columns: .9fr 1.1fr; gap: 7vw; }
-.section-heading h2, .curriculum h2, .areas h2, .steps h2, .contact h2 { font-size: clamp(35px, 4vw, 56px); }
+.section-heading h2, .curriculum h2, .areas h2, .keyword-map h2, .steps h2, .contact h2 { font-size: clamp(35px, 4vw, 56px); }
 .intro-copy { max-width: 620px; align-self: end; color: var(--muted); }
 .intro-copy .lead { margin: 0 0 17px; color: var(--ink); font-size: 21px; }
 .values { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 67px; border-top: 1px solid var(--line); }
@@ -109,6 +109,20 @@ h1, h2 { margin: 0; font-family: "Gowun Batang", serif; font-weight: 700; line-h
 .contact-copy > a { display: block; width: max-content; margin-top: 42px; border-bottom: 1px solid var(--ink); padding-bottom: 7px; font-size: 20px; font-weight: 700; }
 .contact-copy > a small { margin-right: 17px; color: var(--muted); font-size: 11px; font-weight: 500; }
 
+.keyword-map { background: var(--paper); }
+.keyword-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 60px; background: var(--line); }
+.keyword-column { padding: 36px; background: var(--paper); }
+.keyword-column h3 { margin: 0; font-size: 21px; }
+.keyword-column > p { margin: 6px 0 22px; color: var(--coral); font-size: 12px; font-weight: 700; }
+.keyword-column nav { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+.keyword-column a { padding: 7px 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+.keyword-column a:hover { color: var(--ink); }
+.faq { display: grid; grid-template-columns: .85fr 1.15fr; gap: 7vw; }
+.faq-list { border-top: 1px solid var(--line); }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary { padding: 22px 4px; font-weight: 700; cursor: pointer; }
+.faq details p { margin: 0; padding: 0 4px 24px; color: var(--muted); font-size: 14px; }
+
 .site-footer { display: grid; grid-template-columns: 1fr 1fr auto; align-items: center; gap: 45px; padding: 49px clamp(23px, 5vw, 78px); color: rgba(255,255,255,.6); background: #09241e; font-size: 11px; }
 .site-footer .brand { color: var(--white); }
 .site-footer p { margin: 2px 0; }
@@ -140,6 +154,7 @@ h1, h2 { margin: 0; font-family: "Gowun Batang", serif; font-weight: 700; line-h
   .step-list { grid-template-columns: repeat(2, 1fr); row-gap: 55px; }
   .step-list li:nth-child(2)::after { display: none; }
   .contact { grid-template-columns: 1fr; }
+  .keyword-grid, .faq { grid-template-columns: 1fr; }
   .site-footer { grid-template-columns: 1fr 1fr; }
   .site-footer > p { grid-column: 1 / -1; }
 }
@@ -160,7 +175,7 @@ h1, h2 { margin: 0; font-family: "Gowun Batang", serif; font-weight: 700; line-h
   .phone { align-self: center; text-align: center; }
   .hero-note { display: none; }
   .section { padding: 87px 22px; }
-  .section-heading h2, .curriculum h2, .areas h2, .steps h2, .contact h2 { font-size: 34px; }
+  .section-heading h2, .curriculum h2, .areas h2, .keyword-map h2, .steps h2, .contact h2 { font-size: 34px; }
   .intro-copy .lead { font-size: 18px; }
   .values { grid-template-columns: 1fr; margin-top: 50px; }
   .value, .value + .value { min-height: 0; padding: 32px 4px; border-right: 0; border-bottom: 1px solid var(--line); }
