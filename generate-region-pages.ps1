@@ -23,10 +23,14 @@ $regions = @(
   [ordered]@{ Name="청주시 청원구"; Short="청원구"; Slug="cheongju-cheongwon-gu"; En="CHEONGWON-GU"; Places="율량동·주성동·오창읍·내수읍"; Summary="청주시 청원구 학생의 개념 빈틈과 풀이 습관을 확인해 내신과 수능으로 이어지는 학습 기반을 만듭니다."; Focus="오창과 율량·주성 지역 학생의 학교 일정과 목표에 맞춰 수업 속도를 조절합니다." }
 )
 
+# 출처: 전국초중등학교위치표준데이터(2026-10-26), 충북 운영 중인 본교
+$schools = Import-Csv -Path (Join-Path $PSScriptRoot "data/chungbuk-schools.csv") -Encoding UTF8
+
 # {R} = 지역명, {S} = 짧은 지역명, {P} = 주요 동·읍·면
 $grades = @(
   [ordered]@{
-    Key="elementary"; Label="초등"; En="ELEMENTARY"; Card="기초와 자신감"
+    Key="elementary"; Label="초등"; En="ELEMENTARY"; Card="기초와 자신감"; SchoolLevel="초등학교"
+    SchoolText="학교별 교과 진도와 단원평가 일정에 맞춰 연산, 교과 개념, 서술형 풀이를 함께 관리합니다."
     TitleTail="기초수학·수학공부 1:1 수업"
     Tagline="개념과 연산이 단단해지는 시간"
     Description="{R} 초등 수학과외 - 연산·기초수학부터 교과 개념과 서술형까지, 초1~초6 학생별 1:1 수학수업과 수학공부 습관 관리. {P} 상담 010-2928-3614"
@@ -51,7 +55,8 @@ $grades = @(
     )
   },
   [ordered]@{
-    Key="middle"; Label="중등"; En="MIDDLE SCHOOL"; Card="개념과 내신"
+    Key="middle"; Label="중등"; En="MIDDLE SCHOOL"; Card="개념과 내신"; SchoolLevel="중학교"
+    SchoolText="학교별 교과서와 부교재, 시험 범위, 서술형 출제 경향을 확인해 수학내신을 준비합니다."
     TitleTail="수학내신·기초수학 1:1 수업"
     Tagline="개념을 연결하고 내신을 다지는 시간"
     Description="{R} 중등 수학과외 - 중1·중2·중3 수학내신과 기초수학, 학교별 시험 범위에 맞춘 1:1 수학수업과 수학공부 관리. {P} 상담 010-2928-3614"
@@ -76,7 +81,8 @@ $grades = @(
     )
   },
   [ordered]@{
-    Key="high"; Label="고등"; En="HIGH SCHOOL"; Card="내신과 수능"
+    Key="high"; Label="고등"; En="HIGH SCHOOL"; Card="내신과 수능"; SchoolLevel="고등학교"
+    SchoolText="학교별 교과서와 부교재, 기출 경향에 맞춘 수학내신 대비와 수능수학 준비를 함께 진행합니다."
     TitleTail="수학내신·수능수학 1:1 대비"
     Tagline="내신과 수능을 함께 준비하는 시간"
     Description="{R} 고등 수학과외 - 고1·고2·고3 수학내신, 수능대비·수능수학까지 목표 등급에 맞춘 1:1 수학수업. {P} 상담 010-2928-3614"
@@ -106,6 +112,15 @@ $grades = @(
 
 function Fill($text, $region) {
   return $text.Replace('{R}', $region.Name).Replace('{S}', $region.Short).Replace('{P}', ($region.Places -replace '·', ', '))
+}
+
+function Get-Schools($region, $level) {
+  $parts = $region.Name -split ' '
+  return @($schools | Where-Object { $_.City -eq $parts[0] -and ($parts.Count -eq 1 -or $_.District -eq $parts[1]) -and $_.Level -eq $level } | ForEach-Object { $_.Name })
+}
+
+function Get-SchoolList($names) {
+  return "<ul class=`"school-list`">$(($names | ForEach-Object { "<li>$_</li>" }) -join '')</ul>"
 }
 
 function Get-RegionLinks($currentSlug, $grade) {
@@ -197,6 +212,12 @@ foreach ($region in $regions) {
     @("수업은 어떻게 시작하나요?", "전화 상담으로 현재 고민과 목표를 듣고, 개념 이해도와 풀이 습관을 진단한 뒤 학생별 수업 방향을 제안합니다."),
     @((Fill "{R} 어느 지역에서 수업을 받을 수 있나요?" $region), (Fill "{P} 등 {R} 학생과 상담하고 있습니다. 방문 수업 가능 여부와 일정은 전화 상담 시 안내해 드립니다." $region))
   )
+  $schoolColumns = ($grades | ForEach-Object {
+    $names = Get-Schools $region $_.SchoolLevel
+    if ($names.Count) { "<div class=`"school-column`"><h3><a href=`"$($region.Slug)-$($_.Key).html`">$($region.Short) $($_.SchoolLevel) 수학과외</a><small>$($names.Count)곳</small></h3>$(Get-SchoolList $names)</div>" }
+  }) -join ''
+  $schoolCount = @($grades | ForEach-Object { Get-Schools $region $_.SchoolLevel }).Count
+  $regionSchools = "    <section class=`"section schools`"><div class=`"section-heading`"><p class=`"eyebrow dark`">LOCAL SCHOOLS</p><h2>$($region.Name)<br>학교별 수학과외</h2></div><p class=`"section-copy`">$($region.Name)에 있는 초·중·고 $($schoolCount)곳의 학생과 상담합니다. 다니는 학교의 진도와 시험 범위에 맞춰 수업을 설계합니다.</p><div class=`"school-columns`">$schoolColumns</div></section>"
   $regionTitle = "$($region.Short) 수학과외 | $($region.Name) 초등·중등·고등 1:1 수학수업"
   $regionDescription = "$($region.Name) 수학과외 - 초등 기초수학, 중등 수학내신, 고등 수능수학까지 1:1 맞춤 수업. $($region.Summary) 상담 $phone"
   $regionMain = @"
@@ -224,6 +245,7 @@ $localBand
       <p class="grade-transition">예비중1·예비중2·예비중3, 예비고1·예비고2·예비고3 학생은 새 학년 진도와 현재 실력을 함께 확인해 필요한 선행과 복습의 범위를 조정합니다.</p>
       <div class="grade-grid">$gradeCards</div>
     </section>
+$regionSchools
     <section class="section faq"><div class="section-heading"><p class="eyebrow dark">FAQ</p><h2>$($region.Name) 수학과외<br>자주 묻는 질문</h2></div><div class="faq-list">$(Get-FaqHtml $regionFaq)</div></section>
     <section class="section region-navigation"><p class="eyebrow dark">CHUNGBUK 15 AREAS</p><h2>충북 지역별 수학과외</h2><nav class="region-links" aria-label="충북 지역별 수학과외">$(Get-RegionLinks $region.Slug $null)</nav></section>
 $cta
@@ -245,6 +267,8 @@ $cta
       $current = if ($_.Key -eq $grade.Key) { ' aria-current="page"' } else { '' }
       "<a href=`"$($region.Slug)-$($_.Key).html`"$current>$($region.Short) $($_.Label) 수학과외</a>"
     })) -join ''
+    $gradeSchoolNames = Get-Schools $region $grade.SchoolLevel
+    $gradeSchools = if ($gradeSchoolNames.Count) { "    <section class=`"section schools`"><div class=`"section-heading`"><p class=`"eyebrow dark`">LOCAL SCHOOLS</p><h2>$($region.Short) $($grade.SchoolLevel)별<br>수학과외</h2></div><p class=`"section-copy`">$($region.Name)에 있는 $($grade.SchoolLevel) $($gradeSchoolNames.Count)곳의 학생과 상담합니다. $($grade.SchoolText)</p>$(Get-SchoolList $gradeSchoolNames)</section>" } else { "" }
     $gradeMain = @"
     <section class="hero" aria-labelledby="region-title">
       <div class="hero-content">
@@ -264,6 +288,7 @@ $cta
       <div class="section-heading"><p class="eyebrow dark">BY GRADE</p><h2>학년별<br>$($region.Short) $($grade.Label) 수학과외</h2></div>
       <div class="grade-grid year-grid">$years</div>
     </section>
+$gradeSchools
 $localBand
     <section class="section faq"><div class="section-heading"><p class="eyebrow dark">FAQ</p><h2>$($region.Short) $($grade.Label) 수학과외<br>자주 묻는 질문</h2></div><div class="faq-list">$(Get-FaqHtml $gradeFaq)</div></section>
     <section class="section region-navigation"><p class="eyebrow dark">$($region.En) PROGRAM</p><h2>$($region.Name) 학년별 수학과외</h2><nav class="region-links grade-links" aria-label="$($region.Name) 학년별 수학과외">$siblings</nav>
@@ -278,6 +303,37 @@ $cta
     $sitemapUrls += $gradeUrl
   }
 }
+
+# 메인 페이지 충북 학교별 섹션
+$indexRegions = @($regions | Where-Object { $_.Slug -ne "cheongju-si" })
+$indexRegions = @($indexRegions | Where-Object { $_.Name -like "청주시 *" }) + @($indexRegions | Where-Object { $_.Name -notlike "청주시 *" })
+$schoolMap = ($indexRegions | ForEach-Object {
+  $region = $_
+  $lines = ($grades | ForEach-Object {
+    $names = Get-Schools $region $_.SchoolLevel
+    if ($names.Count) { "<p><a href=`"regions/$($region.Slug)-$($_.Key).html`">$($_.SchoolLevel)</a> $($names -join ' · ')</p>" }
+  }) -join ''
+  "<article><h3><a href=`"regions/$($region.Slug).html`">$($region.Name) 수학과외</a></h3>$lines</article>"
+}) -join "`n        "
+$indexPath = Join-Path $PSScriptRoot "index.html"
+$utf8 = New-Object System.Text.UTF8Encoding $false
+$index = [System.IO.File]::ReadAllText($indexPath, $utf8)
+$schoolSection = @"
+<!-- schools:start -->
+    <section class="school-map section" id="schools">
+      <div class="areas-heading reveal">
+        <div><p class="kicker">CHUNGBUK SCHOOLS</p><h2>충북 학교별<br>수학과외</h2></div>
+        <p>충북에 있는 초등학교 $(@($schools | Where-Object Level -eq "초등학교").Count)곳, 중학교 $(@($schools | Where-Object Level -eq "중학교").Count)곳, 고등학교 $(@($schools | Where-Object Level -eq "고등학교").Count)곳 학생의 학교 진도와 시험 범위에 맞춰 수업합니다.</p>
+      </div>
+      <div class="school-map-grid">
+        $schoolMap
+      </div>
+    </section>
+    <!-- schools:end -->
+"@
+$index = [regex]::Replace($index, '(?s)<!-- schools:start -->.*?<!-- schools:end -->?
+', { param($m) $schoolSection })
+[System.IO.File]::WriteAllText($indexPath, $index, $utf8)
 
 $sitemapEntries = ($sitemapUrls | ForEach-Object {
   $priority = if ($_ -eq "$siteUrl/") { "1.0" } elseif ($_ -match '-(elementary|middle|high)\.html$') { "0.7" } else { "0.8" }
