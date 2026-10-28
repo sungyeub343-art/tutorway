@@ -121,7 +121,8 @@ h1, h2 { margin: 0; font-family: "Gowun Batang", serif; font-weight: 700; line-h
 .school-map-grid article { padding: 32px 36px; background: var(--paper); }
 .school-map-grid h3 { margin: 0 0 14px; font-size: 19px; }
 .school-map-grid p { margin: 0 0 10px; color: var(--muted); font-size: 13px; line-height: 1.9; }
-.school-map-grid p a { margin-right: 8px; color: var(--coral); font-weight: 700; }
+.school-map-grid p a.level { margin-right: 8px; color: var(--coral); font-weight: 700; }
+.school-map-grid p a:not(.level):hover { color: var(--ink); text-decoration: underline; }
 .faq { display: grid; grid-template-columns: .85fr 1.15fr; gap: 7vw; }
 .faq-list { border-top: 1px solid var(--line); }
 .faq details { border-bottom: 1px solid var(--line); }

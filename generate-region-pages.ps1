@@ -1,6 +1,7 @@
 ﻿$ErrorActionPreference = "Stop"
 $outputDirectory = Join-Path $PSScriptRoot "regions"
-New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+$schoolDirectory = Join-Path $PSScriptRoot "schools"
+New-Item -ItemType Directory -Path $outputDirectory, $schoolDirectory -Force | Out-Null
 $siteUrl = "https://tutorway.kr"
 $phone = "010-2928-3614"
 $today = Get-Date -Format "yyyy-MM-dd"
@@ -25,6 +26,7 @@ $regions = @(
 
 # 출처: 전국초중등학교위치표준데이터(2026-10-26), 충북 운영 중인 본교
 $schools = Import-Csv -Path (Join-Path $PSScriptRoot "data/chungbuk-schools.csv") -Encoding UTF8
+$schools | ForEach-Object { $_.Lat = [double]$_.Lat; $_.Lon = [double]$_.Lon }
 
 # {R} = 지역명, {S} = 짧은 지역명, {P} = 주요 동·읍·면
 $grades = @(
@@ -116,11 +118,18 @@ function Fill($text, $region) {
 
 function Get-Schools($region, $level) {
   $parts = $region.Name -split ' '
-  return @($schools | Where-Object { $_.City -eq $parts[0] -and ($parts.Count -eq 1 -or $_.District -eq $parts[1]) -and $_.Level -eq $level } | ForEach-Object { $_.Name })
+  return @($schools | Where-Object { $_.City -eq $parts[0] -and ($parts.Count -eq 1 -or $_.District -eq $parts[1]) -and $_.Level -eq $level })
 }
 
-function Get-SchoolList($names) {
-  return "<ul class=`"school-list`">$(($names | ForEach-Object { "<li>$_</li>" }) -join '')</ul>"
+function Get-SchoolList($items) {
+  $listItems = ($items | ForEach-Object { "<li><a href=`"../schools/$($_.Id).html`">$($_.Name)</a></li>" }) -join ''
+  return "<ul class=`"school-list`">$listItems</ul>"
+}
+
+function Get-Distance($a, $b) {
+  $x = ($b.Lon - $a.Lon) * [Math]::Cos(($a.Lat + $b.Lat) * [Math]::PI / 360)
+  $y = $b.Lat - $a.Lat
+  return [Math]::Sqrt($x * $x + $y * $y) * 111.32
 }
 
 function Get-RegionLinks($currentSlug, $grade) {
@@ -190,8 +199,8 @@ $($page.Main)
 "@
 }
 
-function Write-Page($fileName, $html) {
-  Set-Content -Path (Join-Path $outputDirectory $fileName) -Value $html -Encoding UTF8
+function Write-Page($fileName, $html, $directory = $outputDirectory) {
+  Set-Content -Path (Join-Path $directory $fileName) -Value $html -Encoding UTF8
 }
 
 $sitemapUrls = @("$siteUrl/")
@@ -311,7 +320,8 @@ $schoolMap = ($indexRegions | ForEach-Object {
   $region = $_
   $lines = ($grades | ForEach-Object {
     $names = Get-Schools $region $_.SchoolLevel
-    if ($names.Count) { "<p><a href=`"regions/$($region.Slug)-$($_.Key).html`">$($_.SchoolLevel)</a> $($names -join ' · ')</p>" }
+    $schoolLinks = ($names | ForEach-Object { "<a href=`"schools/$($_.Id).html`">$($_.Name)</a>" }) -join ' · '
+    if ($names.Count) { "<p><a class=`"level`" href=`"regions/$($region.Slug)-$($_.Key).html`">$($_.SchoolLevel)</a> $schoolLinks</p>" }
   }) -join ''
   "<article><h3><a href=`"regions/$($region.Slug).html`">$($region.Name) 수학과외</a></h3>$lines</article>"
 }) -join "`n        "
@@ -331,15 +341,100 @@ $schoolSection = @"
     </section>
     <!-- schools:end -->
 "@
-$index = [regex]::Replace($index, '(?s)<!-- schools:start -->.*?<!-- schools:end -->?
+$index = [regex]::Replace($index, '(?s)<!-- schools:start -->.*?<!-- schools:end -->
+?
 ', { param($m) $schoolSection })
 [System.IO.File]::WriteAllText($indexPath, $index, $utf8)
 
+# 학교별 페이지
+$schoolPrograms = @{
+  "초등학교" = @{ Grade="elementary"; Tail="기초수학·수학공부 1:1"; Tagline="학교 진도에 맞춘 1:1 수학 수업"; Next="중학교"; NextLabel="인근 중학교"
+    Description="{N} 학생을 위한 1:1 수학과외. {N} 교과 진도와 단원평가에 맞춘 연산·기초수학, 서술형 풀이와 수학공부 습관 관리."
+    Topics=@(
+      @("수학수업", "{N} 학생의 교과 진도에 맞춰 이번 단원의 개념을 먼저 정리하고, 단원평가 전에는 틀리기 쉬운 문제를 다시 점검합니다."),
+      @("기초수학", "연산 실수, 분수와 소수, 도형처럼 막힌 부분을 찾아 이전 학년 내용까지 필요한 만큼 되짚어 기초를 다집니다."),
+      @("수학공부 습관", "학생 수준에 맞는 과제 분량을 정하고 틀린 문제를 다시 풀어 보는 오답 습관을 함께 만듭니다.")
+    ) }
+  "중학교" = @{ Grade="middle"; Tail="수학내신 대비 1:1"; Tagline="학교 시험에 맞춘 1:1 수학 수업"; Next="고등학교"; NextLabel="인근 고등학교"
+    Description="{N} 학생을 위한 1:1 수학과외. {N} 시험 범위와 교과서·부교재에 맞춘 수학내신 대비, 기초수학 보완과 서술형 풀이 관리."
+    Topics=@(
+      @("수학내신", "{N}의 시험 범위와 교과서, 부교재를 확인해 시험 4주 전부터 단원 점검, 서술형 풀이, 실전 연습 순서로 준비합니다."),
+      @("수학수업", "{N} 진도에 맞춰 개념 설명, 유형 연습, 오답 정리를 한 흐름으로 진행합니다."),
+      @("기초수학", "정수와 유리수, 방정식, 함수처럼 막히기 쉬운 단원의 빈틈을 찾아 현재 진도와 함께 보완합니다.")
+    ) }
+  "고등학교" = @{ Grade="high"; Tail="수학내신·수능수학 1:1"; Tagline="내신과 수능을 함께 준비하는 1:1 수업"; Next="중학교"; NextLabel="인근 중학교"
+    Description="{N} 학생을 위한 1:1 수학과외. {N} 교과서·부교재와 시험 범위에 맞춘 수학내신 대비, 목표 등급별 수능수학 준비."
+    Topics=@(
+      @("수학내신", "{N}의 교과서와 부교재, 시험 범위를 확인해 서술형과 고난도 문항까지 대비합니다."),
+      @("수능수학", "학년과 목표 등급에 맞춰 개념 완성, 기출 분석, 실전 모의고사 순서로 수능수학을 준비합니다."),
+      @("수학공부", "다른 과목 일정까지 고려해 개념 복습과 기출 풀이가 이어지는 현실적인 공부 계획을 세웁니다.")
+    ) }
+}
+
+function Get-NearbyList($school, $level, $count) {
+  $items = @($schools | Where-Object { $_.Level -eq $level -and $_.Id -ne $school.Id } | ForEach-Object { [pscustomobject]@{ School=$_; Km=(Get-Distance $school $_) } } | Sort-Object Km | Select-Object -First $count)
+  $listItems = ($items | ForEach-Object { "<li><a href=`"$($_.School.Id).html`">$($_.School.Name) 수학과외</a><span>$($_.School.Town) · 약 $('{0:0.0}' -f $_.Km)km</span></li>" }) -join ''
+  return "<ul class=`"nearby-list`">$listItems</ul>"
+}
+
+foreach ($school in $schools) {
+  $program = $schoolPrograms[$school.Level]
+  $grade = $grades | Where-Object { $_.Key -eq $program.Grade }
+  $regionName = if ($school.District) { "$($school.City) $($school.District)" } else { $school.City }
+  $region = $regions | Where-Object { $_.Name -eq $regionName }
+  $name = $school.Name
+  $schoolUrl = "$siteUrl/schools/$($school.Id).html"
+  $gradeHref = "../regions/$($region.Slug)-$($grade.Key).html"
+  $description = "$($program.Description.Replace('{N}', $name)) $($region.Name) $($school.Town) 상담 $phone"
+  $topics = ($program.Topics | ForEach-Object { "<article><span>$($grade.Label) $($_[0])</span><h3>$name $($_[0])</h3><p>$($_[1].Replace('{N}', $name))</p></article>" }) -join ''
+  $schoolFaq = @(
+    @("$name 시험 범위와 진도에 맞춰 수업하나요?", "네. $name 교과서와 진도, 시험 범위와 학사 일정을 확인해 단원별 학습 계획을 세웁니다."),
+    @("$name 근처에서 수업을 받을 수 있나요?", "$($region.Name) $($school.Town) 등 $name 주변 학생과 상담하고 있습니다. 방문 수업 가능 여부와 일정은 전화 상담 시 안내해 드립니다."),
+    $grade.Faq[1]
+  )
+  $founded = if ($school.Founded) { "<div><dt>설립일</dt><dd>$($school.Founded)</dd></div>" } else { "" }
+  $regionLinks = (@("<a href=`"../regions/$($region.Slug).html`">$($region.Short) 수학과외 전체</a>") + ($grades | ForEach-Object { "<a href=`"../regions/$($region.Slug)-$($_.Key).html`">$($region.Short) $($_.Label) 수학과외</a>" })) -join ''
+  $schoolMain = @"
+    <section class="hero" aria-labelledby="school-title">
+      <div class="hero-content">
+        <p class="eyebrow">$($region.En) · SCHOOL MATH TUTORING</p>
+        <h1 id="school-title">$name 수학과외,<br><em>$($program.Tagline)</em></h1>
+        <p class="hero-copy">$($region.Name) $($school.Town)에 있는 $name 학생의 교과 진도와 시험 범위, 현재 실력을 함께 살펴 1:1로 수학을 지도합니다.</p>
+        <div class="hero-actions"><a class="primary-button" href="tel:01029283614">무료 학습 상담</a><a class="phone-link" href="tel:01029283614">$phone</a></div>
+      </div>
+    </section>
+    <nav class="breadcrumb" aria-label="현재 위치"><a href="../">충북 수학과외</a><span aria-hidden="true">/</span><a href="../regions/$($region.Slug).html">$($region.Name) 수학과외</a><span aria-hidden="true">/</span><a href="$gradeHref">$($grade.Label) 수학</a><span aria-hidden="true">/</span><span aria-current="page">$name</span></nav>
+    <section class="section topics">
+      <div class="section-heading"><p class="eyebrow dark">SCHOOL PROGRAM</p><h2>$name<br>수학, 이렇게 준비합니다.</h2></div>
+      <p class="section-copy">$($region.Focus)</p>
+      <div class="topic-grid school-topics">$topics</div>
+    </section>
+    <section class="section school-info">
+      <div class="section-heading"><p class="eyebrow dark">SCHOOL INFO</p><h2>$name<br>학교 정보</h2></div>
+      <dl class="info-list"><div><dt>학교급</dt><dd>$($school.Level)</dd></div><div><dt>설립 구분</dt><dd>$($school.Type)</dd></div>$founded<div><dt>소재지</dt><dd>$($school.Address)</dd></div><div><dt>교육지원청</dt><dd>$($school.Office)</dd></div></dl>
+      <p class="data-note">출처: 전국초중등학교위치표준데이터 (2026-10-26 기준)</p>
+    </section>
+    <section class="section nearby">
+      <div class="nearby-column"><h2>$name 인근 $($school.Level)</h2>$(Get-NearbyList $school $school.Level 6)</div>
+      <div class="nearby-column"><h2>$name $($program.NextLabel)</h2>$(Get-NearbyList $school $program.Next 4)</div>
+    </section>
+    <section class="section faq"><div class="section-heading"><p class="eyebrow dark">FAQ</p><h2>$name 수학과외<br>자주 묻는 질문</h2></div><div class="faq-list">$(Get-FaqHtml $schoolFaq)</div></section>
+    <section class="section region-navigation"><p class="eyebrow dark">$($region.En) PROGRAM</p><h2>$($region.Name) 수학과외 더 보기</h2><nav class="region-links grade-links" aria-label="$($region.Name) 수학과외">$regionLinks</nav></section>
+    <section class="cta"><p>START YOUR WAY</p><h2>$name 수학과외,<br>편하게 상담해 보세요.</h2><div><a class="primary-button" href="tel:01029283614">전화 상담하기</a><a class="phone-link" href="tel:01029283614">$phone</a></div></section>
+"@
+  Write-Page "$($school.Id).html" (Get-Page @{
+    Title="$name 수학과외 | $($region.Short) $($grade.Label) $($program.Tail) 수업"; Description=$description; Url=$schoolUrl
+    BackHref=$gradeHref; BackText="$($region.Short) $($grade.Label) 수학과외"; Main=$schoolMain
+    JsonLd=(Get-JsonLd $schoolUrl "$name 수학과외" $description @(@("충북 수학과외", "$siteUrl/"), @("$($region.Name) 수학과외", "$siteUrl/regions/$($region.Slug).html"), @("$($grade.Label) 수학과외", "$siteUrl/regions/$($region.Slug)-$($grade.Key).html"), @("$name 수학과외", $schoolUrl)) $schoolFaq)
+  }) $schoolDirectory
+  $sitemapUrls += $schoolUrl
+}
+
 $sitemapEntries = ($sitemapUrls | ForEach-Object {
-  $priority = if ($_ -eq "$siteUrl/") { "1.0" } elseif ($_ -match '-(elementary|middle|high)\.html$') { "0.7" } else { "0.8" }
+  $priority = if ($_ -eq "$siteUrl/") { "1.0" } elseif ($_ -like "*/schools/*") { "0.6" } elseif ($_ -match '-(elementary|middle|high)\.html$') { "0.7" } else { "0.8" }
   "  <url><loc>$_</loc><lastmod>$today</lastmod><priority>$priority</priority></url>"
 }) -join "`n"
 $sitemap = "<?xml version=`"1.0`" encoding=`"UTF-8`"?>`n<urlset xmlns=`"http://www.sitemaps.org/schemas/sitemap/0.9`">`n$sitemapEntries`n</urlset>"
 [System.IO.File]::WriteAllText((Join-Path $PSScriptRoot "sitemap.xml"), $sitemap + "`n", (New-Object System.Text.UTF8Encoding $false))
 
-Write-Host "Generated $($regions.Count) regional pages and $($regions.Count * $grades.Count) grade pages."
+Write-Host "Generated $($regions.Count) regional pages, $($regions.Count * $grades.Count) grade pages and $($schools.Count) school pages."
