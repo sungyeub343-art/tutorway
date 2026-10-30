@@ -90,6 +90,16 @@ h1 em { color:#ff9a7e; font-style:normal; }
 .nearby-list a { font-weight:600; }
 .nearby-list a:hover { color:#b94b34; }
 .nearby-list span { color:var(--muted); font-size:12px; white-space:nowrap; }
+.year-links { display:flex; flex-wrap:wrap; gap:8px; margin-top:34px; }
+.year-links a { padding:8px 14px; border:1px solid var(--line); background:var(--paper); font-size:13px; font-weight:600; }
+.year-links a:hover { color:var(--white); background:var(--forest-light); }
+.year-units { display:grid; grid-template-columns:.85fr 1.15fr; gap:7vw; }
+.unit-list { display:flex; flex-wrap:wrap; gap:10px; margin:0 0 16px; padding:0; list-style:none; }
+.unit-list li { padding:10px 16px; border:1px solid var(--line); background:var(--white); font-weight:600; }
+.year-units .data-note { grid-column:auto; }
+.year-focus { display:grid; grid-template-columns:1fr 1fr; gap:6vw; background:var(--mist); }
+.focus-item h2 { font-size:clamp(28px,3vw,40px); }
+.focus-item > p:last-child { margin:22px 0 0; color:var(--muted); }
 .region-navigation { text-align:center; }
 .region-links { display:grid; grid-template-columns:repeat(5,1fr); max-width:1080px; margin:48px auto 0; border-top:1px solid var(--line); border-left:1px solid var(--line); }
 .region-links a { display:grid; min-height:62px; place-items:center; border-right:1px solid var(--line); border-bottom:1px solid var(--line); font-size:13px; font-weight:600; }
@@ -99,5 +109,5 @@ h1 em { color:#ff9a7e; font-style:normal; }
 .cta>div { justify-content:center; }
 .site-footer { display:flex; justify-content:space-between; gap:25px; padding:40px clamp(22px,5vw,76px); color:rgba(255,255,255,.6); background:#09241e; font-size:11px; }
 .floating-contact { position:fixed; z-index:5; right:18px; bottom:18px; display:none; padding:13px 17px; color:var(--white); background:var(--coral); box-shadow:0 8px 24px rgba(0,0,0,.2); font-size:12px; font-weight:700; }
-@media (max-width:800px) { .diagnosis,.local-band { grid-template-columns:1fr; } .section-copy { margin-top:22px; } .feature-grid { grid-template-columns:1fr; } .feature-grid article,.feature-grid article+article { min-height:0; padding:30px 3px; border-right:0; border-bottom:1px solid var(--line); } .grade-grid,.year-grid,.topic-grid { grid-template-columns:1fr; } .topics,.faq,.schools,.school-info,.nearby { grid-template-columns:1fr; gap:0; } .school-topics { grid-template-columns:1fr; } .data-note { grid-column:1; margin-top:14px; } .nearby-column + .nearby-column { margin-top:60px; } .school-columns { grid-template-columns:1fr; } .region-links,.grade-links { grid-template-columns:repeat(3,1fr); } }
+@media (max-width:800px) { .diagnosis,.local-band { grid-template-columns:1fr; } .section-copy { margin-top:22px; } .feature-grid { grid-template-columns:1fr; } .feature-grid article,.feature-grid article+article { min-height:0; padding:30px 3px; border-right:0; border-bottom:1px solid var(--line); } .grade-grid,.year-grid,.topic-grid { grid-template-columns:1fr; } .topics,.faq,.schools,.school-info,.nearby,.year-units,.year-focus { grid-template-columns:1fr; gap:0; } .year-units .section-heading { margin-bottom:30px; } .focus-item + .focus-item { margin-top:60px; } .school-topics { grid-template-columns:1fr; } .data-note { grid-column:1; margin-top:14px; } .nearby-column + .nearby-column { margin-top:60px; } .school-columns { grid-template-columns:1fr; } .region-links,.grade-links { grid-template-columns:repeat(3,1fr); } }
 @media (max-width:560px) { .site-header { height:72px; padding:0 18px; } .brand-symbol { width:38px; height:38px; } .brand { font-size:13px; } .back-link { font-size:11px; } .hero { min-height:660px; align-items:end; padding-bottom:86px; background-position:58% center; } .hero-content { width:auto; margin:0; padding:0 21px; } h1 { font-size:33px; } .hero-copy { font-size:14px; } .hero-actions { align-items:stretch; flex-direction:column; gap:17px; } .hero-actions .phone-link { text-align:center; } .section { padding:82px 21px; } .section-heading h2,.local-band h2,.region-navigation h2,.cta h2 { font-size:33px; } .local-band { padding:75px 21px; } .place-list { grid-template-columns:1fr 1fr; } .grade-grid article { min-height:210px; padding:30px; } .region-links,.grade-links { grid-template-columns:repeat(2,1fr); margin-top:37px; } .topic-grid article,.grade-card { padding:30px; } .breadcrumb { padding:16px 21px; } .region-links a { font-size:12px; } .cta>div { align-items:stretch; flex-direction:column; gap:18px; } .site-footer { flex-direction:column; padding-bottom:90px; } .floating-contact { display:block; } }
